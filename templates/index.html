@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris Species Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Iris Species Predictor</h1>
+            <p class="subtitle">Enter the flower measurements to predict the species.</p>
+            <form id="predictionForm">
+                <div class="input-group">
+                    <label for="sepal_length">Sepal Length</label>
+                    <input type="number" id="sepal_length" name="sepal_length" step="0.01" placeholder="e.g. 5.1" required>
+                </div>
+                <div class="input-group">
+                    <label for="sepal_width">Sepal Width</label>
+                    <input type="number" id="sepal_width" name="sepal_width" step="0.01" placeholder="e.g. 3.5" required>
+                </div>
+                <div class="input-group">
+                    <label for="petal_length">Petal Length</label>
+                    <input type="number" id="petal_length" name="petal_length" step="0.01" placeholder="e.g. 1.4" required>
+                </div>
+                <div class="input-group">
+                    <label for="petal_width">Petal Width</label>
+                    <input type="number" id="petal_width" name="petal_width" step="0.01" placeholder="e.g. 0.2" required>
+                </div>
+                <button type="submit">Predict Species</button>
+            </form>
+            <div id="loading" class="loading">Predicting...</div>
+            <div id="result" class="result">
+                <span>Predicted Species</span>
+                <h2 id="prediction"></h2>
+            </div>
+            <div id="error" class="error"></div>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById("predictionForm");
+        const result = document.getElementById("result");
+        const prediction = document.getElementById("prediction");
+        const error = document.getElementById("error");
+        const loading = document.getElementById("loading");
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            result.style.display = "none";
+            error.style.display = "none";
+            loading.style.display = "block";
+
+            const data = {
+                sepal_length: parseFloat(document.getElementById("sepal_length").value),
+                sepal_width: parseFloat(document.getElementById("sepal_width").value),
+                petal_length: parseFloat(document.getElementById("petal_length").value),
+                petal_width: parseFloat(document.getElementById("petal_width").value)
+            };
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const responseData = await response.json();
+                loading.style.display = "none";
+                if (responseData.success) {
+                    prediction.textContent = responseData.prediction;
+                    result.style.display = "block";
+                } else {
+                    error.textContent = responseData.error;
+                    error.style.display = "block";
+                }
+            } catch (err) {
+                loading.style.display = "none";
+                error.textContent = "Unable to connect to the prediction server.";
+                error.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>
